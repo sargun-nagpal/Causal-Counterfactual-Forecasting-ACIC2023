@@ -1,3 +1,13 @@
+# CRN for ACIC
+Code adopted from https://github.com/ioanabica/Counterfactual-Recurrent-Network
+
+## Steps to replicate (ACIC analysis by Sargun):
+1. Create a conda env with Python version 3.6: ```conda create -p "./crn_env" python==3.6```
+2. Install required packages: ```pip install requirements.txt```
+3. If you want to train the model on a GPU, you need to install the old version of CUDA config file compatible with Tensorflow 1 (cudart64_100.dll). The file can be found [here](https://www.joe0.com/wp-content/uploads/2019/10/cudart64_100.dll_.zip). Place the file in the NVIDIA GPU Computing Toolkit's CUDA bin folder.
+
+
+
 # [Estimating counterfactual treatment outcomes over time through adversarially balanced representations](https://openreview.net/forum?id=BJg866NFvB)
 
 ### Ioana Bica, Ahmed M. Alaa, James Jordon, Mihaela van der Schaar

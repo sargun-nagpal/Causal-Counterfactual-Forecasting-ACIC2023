@@ -320,7 +320,7 @@ class CRN_Model:
         return balancing_reps
 
     def get_predictions(self, dataset):
-        logging.info("Performing one-step-ahed prediction.")
+        logging.info("Performing one-step-ahead prediction.")
         dataset_size = dataset['current_covariates'].shape[0]
 
         predictions = np.zeros(
@@ -364,6 +364,47 @@ class CRN_Model:
 
         return predictions
 
+    def get_autoregressive_sequence_predictions(self, data_map, encoder_states, encoder_outputs,
+                                                projection_horizon):
+        # Perform 5-step ahead prediction
+        logging.info("Performing multi-step ahead prediction.")
+        current_treatments = data_map['current_treatments']
+        previous_treatments = data_map['previous_treatments']
+
+        sequence_lengths = data_map['sequence_lengths']
+        num_units = current_treatments.shape[0]
+
+        current_dataset = dict()
+        current_dataset['current_covariates'] = np.zeros(shape=(num_units, projection_horizon,
+                                                                data_map['current_covariates'].shape[-1])) # (392, 5, 6)
+        current_dataset['previous_treatments'] = np.zeros(shape=(num_units, projection_horizon,
+                                                                 data_map['previous_treatments'].shape[-1])) # (392, 5, 6)
+        current_dataset['current_treatments'] = np.zeros(shape=(num_units, projection_horizon,
+                                                                data_map['current_treatments'].shape[-1])) # (392, 5, 6)
+        current_dataset['init_state'] = np.zeros((num_units, encoder_states.shape[-1]))  # (392, d) Latest encoder state
+
+        predicted_outputs = np.zeros(shape=(num_units, projection_horizon,
+                                            data_map['outputs'].shape[-1]))  # (392, 5, 1)
+
+        for i in range(num_units):
+            seq_length = int(sequence_lengths[i])
+            current_dataset['init_state'][i] = encoder_states[i, seq_length - 1] # Latest encoder history state
+            current_dataset['current_covariates'][i, 0, 0] = encoder_outputs[i, seq_length - 1]
+            current_dataset['previous_treatments'][i] = previous_treatments[i,
+                                                        seq_length - 1:seq_length + projection_horizon - 1, :]
+            current_dataset['current_treatments'][i] = current_treatments[i, seq_length:seq_length + projection_horizon,
+                                                       :]
+
+        for t in range(0, projection_horizon): # Predict next 5
+            print(t)
+            predictions = self.get_predictions(current_dataset) # 1 step ahead pred
+            for i in range(num_units):
+                predicted_outputs[i, t] = predictions[i, t]
+                if (t < projection_horizon - 1):
+                    current_dataset['current_covariates'][i, t + 1, 0] = predictions[i, t, 0] # Update 1st covariate: Y_t+1
+                    
+        return predicted_outputs
+
     def compute_loss_treatments_one_hot(self, target_treatments, treatment_predictions, active_entries):
         treatment_predictions = tf.reshape(treatment_predictions, [-1, self.max_sequence_length, self.num_treatments])
         cross_entropy_loss = tf.reduce_sum(
@@ -380,14 +421,13 @@ class CRN_Model:
 
     def evaluate_predictions(self, dataset):
         predictions = self.get_predictions(dataset)
-        unscaled_predictions = predictions * dataset['output_stds'] \
-                               + dataset['output_means']
-        unscaled_predictions = np.reshape(unscaled_predictions,
-                                          newshape=(-1, self.max_sequence_length, self.num_outputs))
-        unscaled_outputs = dataset['unscaled_outputs']
+        predictions = np.reshape(predictions,
+                                    newshape=(-1, self.max_sequence_length, self.num_outputs))
+        outputs = dataset['outputs']
+        # print(predictions.shape, outputs.shape, dataset['current_covariates'].shape)
         active_entries = dataset['active_entries']
 
-        mse = self.get_mse_at_follow_up_time(unscaled_predictions, unscaled_outputs, active_entries)
+        mse = self.get_mse_at_follow_up_time(predictions, outputs, active_entries)
         mean_mse = np.mean(mse)
         return mean_mse, mse
 

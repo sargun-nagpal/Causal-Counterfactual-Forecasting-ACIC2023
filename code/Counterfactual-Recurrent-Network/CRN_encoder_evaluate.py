@@ -22,7 +22,7 @@ def fit_CRN_encoder(dataset_train, dataset_val, model_name, model_dir, hyperpara
               'num_epochs': 100}
 
     hyperparams = dict()
-    num_simulations = 50
+    num_simulations = 50 # HP Tuning steps
     best_validation_mse = 1000000
 
     if b_hyperparam_opt:
@@ -74,14 +74,9 @@ def test_CRN_encoder(pickle_map, models_dir,
                      encoder_model_name, encoder_hyperparams_file,
                      b_encoder_hyperparm_tuning):
 
-    training_data = pickle_map['training_data']
-    validation_data = pickle_map['validation_data']
-    test_data = pickle_map['test_data']
-    scaling_data = pickle_map['scaling_data']
-
-    training_processed = get_processed_data(training_data, scaling_data)
-    validation_processed = get_processed_data(validation_data, scaling_data)
-    test_processed = get_processed_data(test_data, scaling_data)
+    training_processed = pickle_map['training_data']
+    validation_processed = pickle_map['validation_data']
+    test_processed = pickle_map['test_data']
 
     fit_CRN_encoder(dataset_train=training_processed, dataset_val=validation_processed,
                     model_name=encoder_model_name, model_dir=models_dir,
@@ -89,7 +84,5 @@ def test_CRN_encoder(pickle_map, models_dir,
 
     CRN_encoder = load_trained_model(validation_processed, encoder_hyperparams_file, encoder_model_name, models_dir)
     mean_mse, mse = CRN_encoder.evaluate_predictions(test_processed)
-
-    rmse = (np.sqrt(np.mean(mse))) / 1150 * 100  # Max tumour volume = 1150
-
+    rmse = (np.sqrt(np.mean(mse)))
     return rmse
