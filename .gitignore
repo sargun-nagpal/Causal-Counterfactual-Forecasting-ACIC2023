@@ -2,6 +2,12 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.DS_store
+.ipynb_checkpoints
+
+# Custom files
+data/
+Daily_Log.md
 
 # C extensions
 *.so
