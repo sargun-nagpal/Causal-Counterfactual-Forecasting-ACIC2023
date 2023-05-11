@@ -3,6 +3,8 @@ This is my final project for the **Causal Inference** course (APSTA-GE 2012) tau
 
 Detailed findings and analysis: [Report](Report.pdf)
 
+<font size="1"> 🌟 the repo if you find it interesting!</font>
+
 ## Project Introduction
 
 Supervised Machine Learning methods are typically used for time series forecasting but do not account for counterfactual outcomes and time-dependent confounders. These models only fit observed data. 
