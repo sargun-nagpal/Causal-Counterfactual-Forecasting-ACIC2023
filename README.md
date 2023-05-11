@@ -35,9 +35,12 @@ The estimand is the expected value of the potential outcome at time t+𝜏 under
 
 ```math 
     Estimand = E[Y_{t+\tau}[Z(t, t+\tau-1)] | H_t]
-    RMSE = \sqrt{\frac{\sum_{i, k, w}(y_{i,k}(w) - \hat{y}_{i,k}(w))^2}{N * N_K * N_W }}
-
 ```
+```math 
+    RMSE = \sqrt{\frac{\sum_{i, k, w}(y_{i,k}(w) - \hat{y}_{i,k}(w))^2}{N * N_K * N_W }}
+```
+
+
 Where $N$ is the number of units, $N_K$ the number of time steps, $N_W$ the number of treatments, $i$ a unit, $k$ a time step, $w$ a treatment, $y$ the
 ground truth outcome and $\hat{y}$ the predicted outcome.
 
